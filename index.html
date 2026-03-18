@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Diagnostic de maturité - Exemple fictif</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    /* -------------------------
+       RESET SIMPLE & TYPO
+    -------------------------- */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, sans-serif;
+      color: #111111;
+      background-color: #f5f6fa;
+      line-height: 1.5;
+    }
+
+    /* -------------------------
+       LAYOUT GLOBAL
+    -------------------------- */
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+
+    header {
+      border-bottom: 3px solid #003da5;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: 1.9rem;
+      margin: 0 0 4px;
+      color: #003da5;
+    }
+
+    header p {
+      margin: 0;
+      color: #555;
+    }
+
+    h2 {
+      font-size: 1.4rem;
+      margin: 24px 0 8px;
+      color: #003da5;
+    }
+
+    h3 {
+      font-size: 1.1rem;
+      margin: 16px 0 6px;
+    }
+
+    p {
+      margin: 4px 0 10px;
+    }
+
+    .section {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 16px 16px 12px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    }
+
+    /* -------------------------
+       FORMULAIRE
+    -------------------------- */
+    .question-block {
+      margin-bottom: 16px;
+      border-left: 3px solid #003da5;
+      padding-left: 10px;
+    }
+
+    .question-text {
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    .axis-label {
+      font-weight: 600;
+      color: #003da5;
+      margin-bottom: 4px;
+    }
+
+    .scale-help {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    .radio-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      align-items: center;
+    }
+
+    .radio-option {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.92rem;
+    }
+
+    label {
+      cursor: pointer;
+    }
+
+    input[type="radio"] {
+      cursor: pointer;
+    }
+
+    /* -------------------------
+       BOUTONS
+    -------------------------- */
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 4px;
+      padding: 10px 16px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background-color: #003da5;
+      color: #ffffff;
+      transition: background-color 0.15s ease, transform 0.1s ease,
+        box-shadow 0.1s ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn.secondary {
+      background-color: #ffffff;
+      color: #003da5;
+      border: 1px solid #003da5;
+      box-shadow: none;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .btn:not(:disabled):hover {
+      background-color: #002c78;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn.secondary:not(:disabled):hover {
+      background-color: #f0f4ff;
+    }
+
+    /* -------------------------
+       RESTITUTION
+    -------------------------- */
+    .results-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 768px) {
+      .results-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: #fafbff;
+      border-radius: 8px;
+      padding: 12px 12px 10px;
+      border: 1px solid #e0e4f2;
+    }
+
+    .card h3 {
+      margin-top: 0;
+    }
+
+    .score-big {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #003da5;
+    }
+
+    .score-subtitle {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 6px;
+    }
+
+    .axis-scores {
+      font-size: 0.9rem;
+    }
+
+    .axis-scores span.axis-name {
+      font-weight: 600;
+      color: #003da5;
+    }
+
+    .axis-scores p {
+      margin: 3px 0;
+    }
+
+    /* -------------------------
+       BARRE DE MATURITÉ
+    -------------------------- */
+    .maturity-wrapper {
+      margin-top: 8px;
+    }
+
+    .maturity-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: #555;
+      margin-bottom: 4px;
+    }
+
+    .maturity-bar {
+      position: relative;
+      height: 16px;
+      border-radius: 999px;
+      background: linear-gradient(
+        90deg,
+        #e4e6f2 0%,
+        #c7d2ff 25%,
+        #a4b5ff 50%,
+        #6b8cff 75%,
+        #003da5 100%
+      );
+      overflow: hidden;
+    }
+
+    .maturity-indicator {
+      position: absolute;
+      top: -4px;
+      width: 2px;
+      height: 24px;
+      background-color: #111;
+      left: 0%;
+      transition: left 0.3s ease;
+    }
+
+    .maturity-indicator::after {
+      content: "";
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 6px 5px 0 5px;
+      border-style: solid;
+      border-color: #111 transparent transparent transparent;
+    }
+
+    .maturity-current {
+      margin-top: 4px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #111;
+    }
+
+    .badge-level {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      font-size: 0.78rem;
+      border-radius: 999px;
+      background-color: #003da5;
+      color: #ffffff;
+      margin-left: 4px;
+    }
+
+    /* -------------------------
+       NIVEAU DÉTAILLÉ
+    -------------------------- */
+    .level-details-title {
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: #003da5;
+    }
+
+    .level-details-desc {
+      font-size: 0.9rem;
+      color: #333;
+    }
+
+    /* -------------------------
+       ALERTES / INFOS
+    -------------------------- */
+    .alert {
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      margin-top: 8px;
+    }
+
+    .alert.info {
+      background-color: #eef3ff;
+      color: #002c78;
+      border: 1px solid #c6d4ff;
+    }
+
+    .alert.error {
+      background-color: #ffecec;
+      color: #7f0000;
+      border: 1px solid #ffb3b3;
+    }
+
+    /* -------------------------
+       IMPRESSION (PDF)
+    -------------------------- */
+    @media print {
+      body {
+        background-color: #ffffff;
+      }
+
+      header {
+        border-bottom-color: #000000;
+      }
+
+      .section {
+        box-shadow: none;
+        border: 1px solid #dddddd;
+      }
+
+      .actions {
+        display: none; /* On masque les boutons à l'impression */
+      }
+
+      .alert.info {
+        border-color: #999;
+        background-color: #f5f5f5;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1>Diagnostic de maturité – Exemple fictif</h1>
+      <p>Questionnaire interactif (5 niveaux de maturité, 4 axes, 8 questions)</p>
+    </header>
+
+    <!-- =======================
+         SECTION 1 : INTRO
+    ======================== -->
+    <section class="section" aria-labelledby="intro-title">
+      <h2 id="intro-title">Comment utiliser ce diagnostic&nbsp;?</h2>
+      <p>
+        Répondez à chaque affirmation sur une échelle de <strong>1 à 5</strong> :
+      </p>
+      <ul>
+        <li>1 = Pas du tout vrai</li>
+        <li>2 = Peu vrai</li>
+        <li>3 = Plutôt vrai</li>
+        <li>4 = Vrai</li>
+        <li>5 = Tout à fait vrai</li>
+      </ul>
+      <p>
+        Le diagnostic calcule ensuite un <strong>score par axe</strong>, un
+        <strong>score global</strong> et le <strong>niveau de maturité</strong>
+        associé parmi les 5 niveaux possibles.
+      </p>
+      <div class="alert info">
+        Le calcul est réalisé <strong>100&nbsp;% côté navigateur</strong>.
+        Aucune donnée n’est transmise à un serveur.
+      </div>
+    </section>
+
+    <!-- =======================
+         SECTION 2 : QUESTIONNAIRE
+    ======================== -->
+    <section class="section" aria-labelledby="questions-title">
+      <h2 id="questions-title">Questionnaire</h2>
+
+      <!-- Axe 1 : Vision & Gouvernance -->
+      <div class="question-block">
+        <div class="axis-label">Axe 1 – Vision &amp; Gouvernance</div>
+        <div class="scale-help">Évaluez dans quelle mesure ces affirmations sont vraies pour votre organisation.</div>
+
+        <div class="question" data-axis="1">
+          <div class="question-text">
+            Q1. Les objectifs de la fonction sont clairement définis et partagés.
+          </div>
+          <div class="radio-group" aria-label="Question 1">
+            <!-- 5 options radio : 1 à 5 -->
+            <label class="radio-option">
+              <input type="radio" name="q1" value="1" /> 1
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q1" value="2" /> 2
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q1" value="3" /> 3
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q1" value="4" /> 4
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q1" value="5" /> 5
+            </label>
+          </div>
+        </div>
+
+        <div class="question" data-axis="1">
+          <div class="question-text">
+            Q2. Les rôles et responsabilités sont documentés et compris.
+          </div>
+          <div class="radio-group" aria-label="Question 2">
+            <label class="radio-option">
+              <input type="radio" name="q2" value="1" /> 1
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q2" value="2" /> 2
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q2" value="3" /> 3
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q2" value="4" /> 4
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q2" value="5" /> 5
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Axe 2 : Processus & Méthodes -->
+      <div class="question-block">
+        <div class="axis-label">Axe 2 – Processus &amp; Méthodes</div>
+        <div class="scale-help">Évaluez le degré de formalisation et d’homogénéité de vos pratiques.</div>
+
+        <div class="question" data-axis="2">
+          <div class="question-text">
+            Q3. Les processus sont formalisés et connus de tous.
+          </div>
+          <div class="radio-group" aria-label="Question 3">
+            <label class="radio-option">
+              <input type="radio" name="q3" value="1" /> 1
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q3" value="2" /> 2
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q3" value="3" /> 3
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q3" value="4" /> 4
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q3" value="5" /> 5
+            </label>
+          </div>
+        </div>
+
+        <div class="question" data-axis="2">
+          <div class="question-text">
+            Q4. Les pratiques sont appliquées de manière homogène.
+          </div>
+          <div class="radio-group" aria-label="Question 4">
+            <label class="radio-option">
+              <input type="radio" name="q4" value="1" /> 1
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q4" value="2" /> 2
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q4" value="3" /> 3
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q4" value="4" /> 4
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q4" value="5" /> 5
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Axe 3 : Outils & Données -->
+      <div class="question-block">
+        <div class="axis-label">Axe 3 – Outils &amp; Données</div>
+        <div class="scale-help">Évaluez l’adéquation des outils et la qualité des données.</div>
+
+        <div class="question" data-axis="3">
+          <div class="question-text">
+            Q5. Les outils utilisés sont adaptés aux besoins.
+          </div>
+          <div class="radio-group" aria-label="Question 5">
+            <label class="radio-option">
+              <input type="radio" name="q5" value="1" /> 1
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q5" value="2" /> 2
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q5" value="3" /> 3
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q5" value="4" /> 4
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q5" value="5" /> 5
+            </label>
+          </div>
+        </div>
+
+        <div class="question" data-axis="3">
+          <div class="question-text">
+            Q6. Les données sont fiables, accessibles et mises à jour.
+          </div>
+          <div class="radio-group" aria-label="Question 6">
+            <label class="radio-option">
+              <input type="radio" name="q6" value="1" /> 1
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q6" value="2" /> 2
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q6" value="3" /> 3
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q6" value="4" /> 4
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q6" value="5" /> 5
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Axe 4 : Compétences & Culture -->
+      <div class="question-block">
+        <div class="axis-label">Axe 4 – Compétences &amp; Culture</div>
+        <div class="scale-help">Évaluez les compétences et la dynamique collective.</div>
+
+        <div class="question" data-axis="4">
+          <div class="question-text">
+            Q7. Les équipes disposent des compétences nécessaires.
+          </div>
+          <div class="radio-group" aria-label="Question 7">
+            <label class="radio-option">
+              <input type="radio" name="q7" value="1" /> 1
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q7" value="2" /> 2
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q7" value="3" /> 3
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q7" value="4" /> 4
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q7" value="5" /> 5
+            </label>
+          </div>
+        </div>
+
+        <div class="question" data-axis="4">
+          <div class="question-text">
+            Q8. La culture favorise la collaboration et l’amélioration continue.
+          </div>
+          <div class="radio-group" aria-label="Question 8">
+            <label class="radio-option">
+              <input type="radio" name="q8" value="1" /> 1
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q8" value="2" /> 2
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q8" value="3" /> 3
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q8" value="4" /> 4
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q8" value="5" /> 5
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn" id="btn-calc">
+          🔍 Calculer le diagnostic
+        </button>
+        <button type="button" class="btn secondary" id="btn-reset">
+          🧹 Réinitialiser les réponses
+        </button>
+      </div>
+      <div id="error-messages" class="alert error" style="display:none;"></div>
+    </section>
+
+    <!-- =======================
+         SECTION 3 : RÉSULTATS
+    ======================== -->
+    <section class="section" aria-labelledby="results-title">
+      <h2 id="results-title">Résultats &amp; niveau de maturité</h2>
+
+      <div class="results-grid">
+        <!-- Colonne 1 : Scores -->
+        <div class="card">
+          <h3>Scores</h3>
+          <div class="score-big" id="global-score">–</div>
+          <div class="score-subtitle">Score global (moyenne des 4 axes, sur 5)</div>
+
+          <div class="axis-scores">
+            <p><span class="axis-name">Axe 1 – Vision &amp; Gouvernance</span> :
+              <span id="axis1-score">–</span>
+            </p>
+            <p><span class="axis-name">Axe 2 – Processus &amp; Méthodes</span> :
+              <span id="axis2-score">–</span>
+            </p>
+            <p><span class="axis-name">Axe 3 – Outils &amp; Données</span> :
+              <span id="axis3-score">–</span>
+            </p>
+            <p><span class="axis-name">Axe 4 – Compétences &amp; Culture</span> :
+              <span id="axis4-score">–</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Colonne 2 : Maturité -->
+        <div class="card">
+          <h3>Maturité globale</h3>
+
+          <div class="maturity-wrapper">
+            <div class="maturity-labels">
+              <span>Niveau 1</span>
+              <span>Niveau 2</span>
+              <span>Niveau 3</span>
+              <span>Niveau 4</span>
+              <span>Niveau 5</span>
+            </div>
+            <div class="maturity-bar" aria-hidden="true">
+              <div class="maturity-indicator" id="maturity-indicator"></div>
+            </div>
+            <div class="maturity-current">
+              Niveau atteint :
+              <span id="current-level-label">–</span>
+              <span class="badge-level" id="current-level-badge" style="display:none;"></span>
+            </div>
+          </div>
+
+          <div style="margin-top:8px;">
+            <div class="level-details-title" id="level-title">Niveau non calculé</div>
+            <div class="level-details-desc" id="level-desc">
+              Veuillez compléter le questionnaire puis lancer le calcul pour obtenir une analyse de maturité.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions" style="margin-top:16px;">
+        <button type="button" class="btn secondary" id="btn-print">
+          📄 Exporter en PDF (imprimer)
+        </button>
+      </div>
+
+      <div class="alert info">
+        Pour exporter en PDF, cliquez sur
+        <strong>«&nbsp;Exporter en PDF (imprimer)&nbsp;»</strong>, puis
+        choisissez l’option <strong>«&nbsp;Enregistrer au format PDF&nbsp;»</strong>
+        dans la boîte de dialogue d’impression de votre navigateur.
+      </div>
+    </section>
+  </div>
+
+  <!-- =======================
+       LOGIQUE JS
+  ======================== -->
+  <script>
+    // -----------------------------
+    // Configuration des niveaux
+    // -----------------------------
+    const maturityLevels = [
+      {
+        id: 1,
+        name: "Initial",
+        range: [1.0, 1.9],
+        description:
+          "Les pratiques sont informelles, hétérogènes et peu documentées. L’organisation réagit aux situations sans cadre commun ni indicateurs structurés."
+      },
+      {
+        id: 2,
+        name: "Structuré",
+        range: [2.0, 2.9],
+        description:
+          "Des processus commencent à être définis et appliqués, mais de manière inégale. La structuration progresse, avec quelques référents identifiés."
+      },
+      {
+        id: 3,
+        name: "Maîtrisé",
+        range: [3.0, 3.4],
+        description:
+          "Les pratiques sont stabilisées, documentées et suivies. Les équipes appliquent les standards et des indicateurs fiables existent."
+      },
+      {
+        id: 4,
+        name: "Optimisé",
+        range: [3.5, 4.4],
+        description:
+          "L’amélioration continue est en place. L’organisation utilise des outils avancés, challenge ses pratiques et pilote de manière régulière la performance."
+      },
+      {
+        id: 5,
+        name: "Excellent",
+        range: [4.5, 5.0],
+        description:
+          "La fonction est un véritable moteur d’innovation, proactive et mesurée. Les apprentissages sont diffusés et l’impact est visible à l’échelle de l’organisation."
+      }
+    ];
+
+    // -----------------------------
+    // Utilitaires
+    // -----------------------------
+    function average(values) {
+      if (!values.length) return null;
+      const sum = values.reduce((acc, v) => acc + v, 0);
+      return sum / values.length;
+    }
+
+    function roundToTwo(value) {
+      return Math.round(value * 100) / 100;
+    }
+
+    function findMaturityLevel(score) {
+      if (typeof score !== "number") return null;
+      for (const level of maturityLevels) {
+        const [min, max] = level.range;
+        if (score >= min && score <= max) {
+          return level;
+        }
+      }
+      // Si score exact 0 ou hors plage, on renvoie null
+      return null;
+    }
+
+    function updateMaturityIndicator(score) {
+      const indicator = document.getElementById("maturity-indicator");
+      if (!indicator) return;
+      if (typeof score !== "number") {
+        indicator.style.left = "0%";
+        return;
+      }
+      // score de 1 à 5 => 0% à 100%
+      const clamped = Math.min(5, Math.max(1, score));
+      const percent = ((clamped - 1) / 4) * 100;
+      indicator.style.left = percent + "%";
+    }
+
+    // -----------------------------
+    // Calcul du diagnostic
+    // -----------------------------
+    function calculateDiagnostic() {
+      const errorBox = document.getElementById("error-messages");
+      errorBox.style.display = "none";
+      errorBox.textContent = "";
+
+      const responses = {};
+      const axisScores = {
+        1: [],
+        2: [],
+        3: [],
+        4: []
+      };
+
+      // Collecte des réponses (q1 à q8)
+      for (let i = 1; i <= 8; i++) {
+        const groupName = "q" + i;
+        const selected = document.querySelector(
+          'input[name="' + groupName + '"]:checked'
+        );
+        if (selected) {
+          const value = parseInt(selected.value, 10);
+          responses[groupName] = value;
+          // Rattachement à l’axe
+          let axisIndex;
+          if (i <= 2) axisIndex = 1;
+          else if (i <= 4) axisIndex = 2;
+          else if (i <= 6) axisIndex = 3;
+          else axisIndex = 4;
+          axisScores[axisIndex].push(value);
+        }
+      }
+
+      // Vérification des questions manquantes
+      const missing = [];
+      for (let i = 1; i <= 8; i++) {
+        if (!responses["q" + i]) {
+          missing.push("Q" + i);
+        }
+      }
+
+      if (missing.length > 0) {
+        errorBox.style.display = "block";
+        errorBox.innerHTML =
+          "Merci de répondre à toutes les questions avant de lancer le calcul. Questions manquantes : <strong>" +
+          missing.join(", ") +
+          "</strong>.";
+        return;
+      }
+
+      // Calcul des moyennes par axe
+      const axis1Avg = average(axisScores[1]);
+      const axis2Avg = average(axisScores[2]);
+      const axis3Avg = average(axisScores[3]);
+      const axis4Avg = average(axisScores[4]);
+
+      // Score global = moyenne des scores des 4 axes
+      const globalScore = average([
+        axis1Avg,
+        axis2Avg,
+        axis3Avg,
+        axis4Avg
+      ]);
+
+      // Mise à jour de l’affichage
+      document.getElementById("axis1-score").textContent = roundToTwo(axis1Avg).toFixed(2);
+      document.getElementById("axis2-score").textContent = roundToTwo(axis2Avg).toFixed(2);
+      document.getElementById("axis3-score").textContent = roundToTwo(axis3Avg).toFixed(2);
+      document.getElementById("axis4-score").textContent = roundToTwo(axis4Avg).toFixed(2);
+      document.getElementById("global-score").textContent = roundToTwo(globalScore).toFixed(2);
+
+      // Niveau de maturité global
+      const level = findMaturityLevel(globalScore);
+      const levelTitleEl = document.getElementById("level-title");
+      const levelDescEl = document.getElementById("level-desc");
+      const levelLabelEl = document.getElementById("current-level-label");
+      const levelBadgeEl = document.getElementById("current-level-badge");
+
+      if (level) {
+        levelTitleEl.textContent = "Niveau " + level.id + " – " + level.name;
+        levelDescEl.textContent = level.description;
+        levelLabelEl.textContent = "Niveau " + level.id + " – " + level.name;
+        levelBadgeEl.textContent = "Score : " + roundToTwo(globalScore).toFixed(2) + "/5";
+        levelBadgeEl.style.display = "inline-flex";
+      } else {
+        levelTitleEl.textContent = "Niveau non défini";
+        levelDescEl.textContent =
+          "Le score global ne permet pas de rattacher clairement la situation à un niveau de maturité. Vérifiez le questionnaire.";
+        levelLabelEl.textContent = "–";
+        levelBadgeEl.style.display = "none";
+      }
+
+      // Mise à jour de la jauge
+      updateMaturityIndicator(globalScore);
+    }
+
+    // -----------------------------
+    // Réinitialisation
+    // -----------------------------
+    function resetForm() {
+      const radios = document.querySelectorAll('input[type="radio"]');
+      radios.forEach((r) => {
+        r.checked = false;
+      });
+
+      document.getElementById("global-score").textContent = "–";
+      document.getElementById("axis1-score").textContent = "–";
+      document.getElementById("axis2-score").textContent = "–";
+      document.getElementById("axis3-score").textContent = "–";
+      document.getElementById("axis4-score").textContent = "–";
+
+      document.getElementById("current-level-label").textContent = "–";
+      document.getElementById("current-level-badge").style.display = "none";
+
+      document.getElementById("level-title").textContent = "Niveau non calculé";
+      document.getElementById("level-desc").textContent =
+        "Veuillez compléter le questionnaire puis lancer le calcul pour obtenir une analyse de maturité.";
+
+      const errorBox = document.getElementById("error-messages");
+      errorBox.style.display = "none";
+      errorBox.textContent = "";
+
+      updateMaturityIndicator(null);
+    }
+
+    // -----------------------------
+    // Impression (PDF)
+    // -----------------------------
+    function printPage() {
+      window.print();
+    }
+
+    // -----------------------------
+    // Binding des événements
+    // -----------------------------
+    document.addEventListener("DOMContentLoaded", function () {
+      const btnCalc = document.getElementById("btn-calc");
+      const btnReset = document.getElementById("btn-reset");
+      const btnPrint = document.getElementById("btn-print");
+
+      btnCalc.addEventListener("click", calculateDiagnostic);
+      btnReset.addEventListener("click", resetForm);
+      btnPrint.addEventListener("click", printPage);
+    });
+  </script>
+</body>
+</html>
